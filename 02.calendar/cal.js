@@ -15,13 +15,7 @@ calendarOutput += `      ${startOfMonth.monthLong}月 ${startOfMonth.year}      
 
 calendarOutput += "日 月 火 水 木 金 土\n";
 
-for (
-  let i = 0;
-  i < (startOfMonth.weekday === 7 ? 0 : startOfMonth.weekday);
-  i++
-) {
-  calendarOutput += "   ";
-}
+calendarOutput += "   ".repeat(startOfMonth.weekday % 7);
 
 for (let i = startOfMonth; i <= endOfMonth; i = i.plus({ days: 1 })) {
   calendarOutput += i.day.toString().padStart(2, " ");
