@@ -1,10 +1,13 @@
-export default class Table {
-  constructor(db, tableName) {
-    this.db = db;
-    this.tableName = tableName;
+import pkg from "sqlite3";
+const { Database } = pkg;
 
-    db.serialize(() => {
-      db.run(
+export default class MemoDB {
+  constructor() {
+    this.db = new Database("./db/memo.sqlite3");
+    this.tableName = "memos";
+
+    this.db.serialize(() => {
+      this.db.run(
         `CREATE TABLE IF NOT EXISTS ${this.tableName} (id INTEGER PRIMARY KEY AUTOINCREMENT, text TEXT)`,
         (err) => {
           if (err) {

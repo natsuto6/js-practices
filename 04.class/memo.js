@@ -1,44 +1,45 @@
 import Menu from "./menu.js";
 
 export default class Memo {
-  constructor(table) {
-    this.table = table;
+  constructor(memoDB) {
+    this.memoDB = memoDB;
   }
 
   async create(lines) {
-    await this.table.insert("text", lines.join("\n"));
-    console.log("\nYour memo has been successfully saved.");
+    await this.memoDB.insert("text", lines.join("\n"));
+    return lines.join("\n");
   }
 
   async showAll() {
-    const allMemos = await this.table.selectAll();
-    if (!this.doesMemoExist(allMemos)) {
-      return;
+    const allMemos = await this.memoDB.selectAll();
+    if (this.hasNoMemo(allMemos)) {
+      return [];
     }
 
     for (let memo of allMemos) {
       console.log(memo.text.split("\n")[0]);
     }
+    return allMemos;
   }
 
   async show() {
-    const allMemos = await this.table.selectAll();
-    if (!this.doesMemoExist(allMemos)) {
-      return;
+    const allMemos = await this.memoDB.selectAll();
+    if (this.hasNoMemo(allMemos)) {
+      return null;
     }
     const selectedMemo = await this.select(allMemos, "see");
-    const selectedRow = await this.table.select(selectedMemo.id);
-    console.log("\n" + selectedRow.text);
+    const selectedRow = await this.memoDB.select(selectedMemo.id);
+    return selectedRow.text;
   }
 
   async delete() {
-    const allMemos = await this.table.selectAll();
-    if (!this.doesMemoExist(allMemos)) {
-      return;
+    const allMemos = await this.memoDB.selectAll();
+    if (this.hasNoMemo(allMemos)) {
+      return null;
     }
     const selectedMemo = await this.select(allMemos, "delete");
-    await this.table.delete(selectedMemo.id);
-    console.log("\nThe selected memo has been successfully deleted.");
+    await this.memoDB.delete(selectedMemo.id);
+    return selectedMemo;
   }
 
   async select(memos, purpose) {
@@ -46,12 +47,7 @@ export default class Memo {
     return await menu.chooseMemoId("id", purpose);
   }
 
-  doesMemoExist(memos) {
-    if (memos.length === 0) {
-      console.log("No memos found. Please create a new one.");
-      return false;
-    }
-
-    return true;
+  hasNoMemo(memos) {
+    return memos.length === 0;
   }
 }

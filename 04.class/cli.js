@@ -1,31 +1,46 @@
 #!/usr/bin/env node
 
-import pkg from "sqlite3";
-const { Database } = pkg;
 import { createInterface } from "readline";
+import MemoDB from "./memoDB.js";
 import Memo from "./memo.js";
-import Table from "./table.js";
 import minimist from "minimist";
 
 async function main() {
-  const sqlite3 = new Database("./db/memo.sqlite3");
-  const memoTable = new Table(sqlite3, "memos");
-  const memo = new Memo(memoTable);
+  const memoDB = new MemoDB();
+  const memo = new Memo(memoDB);
   const argv = minimist(process.argv.slice(2));
   if (!process.stdin.isTTY) {
     const lines = await readStdin();
-    await memo.create(lines);
+    const createdMemo = await memo.create(lines);
+    console.log(
+      "\nYour memo, '" + createdMemo + "', has been successfully saved."
+    );
   }
 
   if (argv.l) {
-    await memo.showAll();
-  } else if (argv.r) {
-    await memo.show();
-  } else if (argv.d) {
-    await memo.delete();
+    const allMemos = await memo.showAll();
+    if (memo.hasNoMemo(allMemos)) {
+      console.log("No memos found. Please create a new one.");
+    }
   }
 
-  sqlite3.close();
+  if (argv.r) {
+    const memoContent = await memo.show();
+    if (memoContent) {
+      console.log("\n" + memoContent);
+    } else {
+      console.log("No memos found. Please create a new one.");
+    }
+  }
+
+  if (argv.d) {
+    const deletedMemo = await memo.delete();
+    if (deletedMemo) {
+      console.log("\nThe selected memo has been successfully deleted.");
+    } else {
+      console.log("No memos found. Please create a new one.");
+    }
+  }
 }
 
 function readStdin() {
